@@ -9,19 +9,26 @@ jobs:
 
       - name: Build (unsigned)
         run: |
-          xcodebuild -project MyApp.xcodeproj -scheme MyApp \
+          PROJ=$(find . -maxdepth 3 -name "*.xcodeproj" -not -path "*/Pods/*" | head -1)
+          if [ -z "$PROJ" ]; then echo "No .xcodeproj found - not a plain Xcode project"; ls -R | head -50; exit 1; fi
+          DIR=$(dirname "$PROJ"); NAME=$(basename "$PROJ" .xcodeproj)
+          echo "Found project: $PROJ"
+          cd "$DIR"
+          if [ -f Podfile ]; then pod install; TARGET="-workspace $NAME.xcworkspace"; else TARGET="-project $NAME.xcodeproj"; fi
+          xcodebuild -list $TARGET
+          xcodebuild $TARGET -scheme "$NAME" \
             -configuration Release -sdk iphoneos \
             -destination 'generic/platform=iOS' \
-            -derivedDataPath build \
+            -derivedDataPath "$GITHUB_WORKSPACE/build" \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
 
       - name: Package IPA
         run: |
           mkdir Payload
           cp -r build/Build/Products/Release-iphoneos/*.app Payload/
-          zip -r MyApp.ipa Payload
+          zip -r app.ipa Payload
 
       - uses: actions/upload-artifact@v4
         with:
-          name: MyApp-ipa
-          path: MyApp.ipa
+          name: app-ipa
+          path: app.ipa
