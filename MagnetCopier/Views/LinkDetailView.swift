@@ -27,7 +27,8 @@ struct LinkDetailView: View {
                 #if os(visionOS)
                 .buttonStyle(.borderedProminent)
                 #else
-                .buttonStyle(.glassProminent)
+                .modifier(ProminentGlassButton())
+
                 #endif
                 .controlSize(.large)
             }
