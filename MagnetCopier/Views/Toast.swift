@@ -27,7 +27,8 @@ public struct Toast: View, Equatable {
         #if os(visionOS)
             .background(.thickMaterial)
         #else
-            .glassEffect()
+            .modifier(GlassOrMaterial())
+
         #endif
             .clipShape(Capsule())
             .overlay(Capsule().stroke(Color.gray.opacity(0.2), lineWidth: 1))
@@ -74,3 +75,15 @@ public extension View {
 #Preview {
     Toast(title: "Copied!")
 }
+#if !os(visionOS)
+struct GlassOrMaterial: ViewModifier {
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content.glassEffect()
+        } else {
+            content.background(.thickMaterial)
+        }
+    }
+}
+#endif
